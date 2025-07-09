@@ -1,0 +1,14 @@
+[
+  {
+    "name": "com.example.GraalVMLogAnalyzer",
+    "allDeclaredConstructors": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.example.S3EventInput",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  }
+]
+

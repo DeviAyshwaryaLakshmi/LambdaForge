@@ -1,0 +1,113 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example</groupId>
+    <artifactId>graalvm-log-analyzer-lambda</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <java.version>11</java.version> <!-- Use 17 or 21 if needed -->
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <graalvm.home>/opt/graalvm</graalvm.home>
+    </properties>
+
+    <dependencies>
+        <!-- AWS Lambda Java Core -->
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-lambda-java-core</artifactId>
+            <version>1.2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>2.25.41</version>
+        </dependency>
+        <dependency>
+            <groupId>com.formkiq</groupId>
+            <artifactId>lambda-runtime-graalvm</artifactId>
+            <version>2.3.1</version>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <!--<plugin>
+                <groupId>org.graalvm.buildtools</groupId>
+                <artifactId>native-maven-plugin</artifactId>
+                <version>0.10.6</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile-no-fork</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>com.formkiq.lambda.runtime.graalvm.LambdaRuntime</mainClass>
+                            &lt;!&ndash;<mainClass>com.example.GraalVMLogAnalyzer</mainClass>&ndash;&gt;
+                            <imageName>java-log-analyzer-lambda</imageName>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>-->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>3.6.0</version>
+                    <executions>
+                        <execution>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>shade</goal>
+                            </goals>
+                            <configuration>
+                                <transformers>
+                                    <transformer
+                                            implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+
+                                        <mainClass>com.formkiq.lambda.runtime.graalvm.LambdaRuntime</mainClass>
+
+<!--
+                                        <mainClass>com.example.Main</mainClass>
+-->
+                                    </transformer>
+                                </transformers>
+                                <shadedArtifactAttached>true</shadedArtifactAttached>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.graalvm.buildtools</groupId>
+                    <artifactId>native-maven-plugin</artifactId>
+                    <version>0.10.6</version>
+                    <extensions>true</extensions>
+                    <executions>
+                        <execution>
+                            <id>build-native</id>
+                            <goals>
+                                <goal>compile-no-fork</goal>
+                            </goals>
+                            <phase>package</phase>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <skip>false</skip>
+                        <imageName>native-lambda</imageName>
+                        <buildArgs>
+                            <buildArg>--no-fallback</buildArg>
+                            <buildArg>--enable-url-protocols=http</buildArg>
+                            <buildArg>--initialize-at-run-time=io.netty,org.slf4j</buildArg>
+                            <buildArg>-H:ReflectionConfigurationFiles=src/main/resources/reflect-config.json</buildArg>
+                        </buildArgs>
+                        <classpath>
+                            <param>${project.build.directory}/${project.build.finalName}-shaded.jar</param>
+                        </classpath>
+                    </configuration>
+                </plugin>
+        </plugins>
+    </build>
+</project>
